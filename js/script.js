@@ -155,19 +155,26 @@ function handleVocChange() {
         let group = "";
 
         if (vocValue === "INQUIRY") {
-        group = "inquiry";
+            group = "inquiry";
         } else if (vocValue === "REQUEST") {
-        group = "request";
+            group = "request";
         } else if (vocValue === "FOLLOW-UP") {
-        group = "follow-up";
+            group = "follow-up";
         } else if (vocValue === "COMPLAINT") {
-        group = "complaint";
+            group = "complaint";
         }
 
         allIntentChildren.forEach(el => {
-        if (el.tagName === "OPTION" && el.dataset.group === group) {
-            intentSelect.appendChild(el.cloneNode(true));
-        }
+            if (el.tagName === "OPTION" && el.dataset.group === group) {
+                intentSelect.appendChild(el.cloneNode(true));
+            } else if (el.tagName === "OPTGROUP") {
+                const matchingOptions = Array.from(el.children).filter(opt => opt.dataset.group === group);
+                if (matchingOptions.length > 0) {
+                    const newGroup = el.cloneNode(false); // clone the optgroup without children
+                    matchingOptions.forEach(opt => newGroup.appendChild(opt.cloneNode(true)));
+                    intentSelect.appendChild(newGroup);
+                }
+            }
         });
     }
 
@@ -367,6 +374,10 @@ function createForm2() {
         "formStrmApps_1", "formStrmApps_2", "formStrmApps_3", "formStrmApps_4", "formStrmApps_5"
     ]
 
+    const inquiryForms = [
+        "formInqAccSrvcStatus", "formInqLockIn", "formInqCopyOfBill", "formInqMyHomeAcc", "formInqPlanDetails", "formInqAda", "formInqRebCredAdj", "formInqBalTransfer", "formInqBrokenPromise", "formInqCreditAdj", "formInqCredLimit", "formInqNSR", "formInqDdate", "formInqBillDdateExt", "formInqEcaPip", "formInqNewBill", "formInqOneTimeCharges", "formInqOverpay", "formInqPayChannel", "formInqPayPosting", "formInqPayRefund", "formInqPayUnreflected", "formInqDdateMod", "formInqBillRefund", "formInqSmsEmailBill", "formInqTollUsage", "formInqCoRetain", "formInqCoChange", "formInqTempDisc", "formInqD1299", "formInqD1399", "formInqD1799", "formInqDOthers", "formInqDdateExt", "formInqEntertainment", "formInqInmove", "formInqMigration", "formInqProdAndPromo", "formInqHomeRefNC", "formInqHomeDisCredit", "formInqReloc", "formInqRewards", "formInqDirectDial", "formInqBundle", "formInqSfOthers", "formInqSAO500", "formInqUfcEnroll", "formInqUfcPromoMech", "formInqUpg1399", "formInqUpg1599", "formInqUpg1799", "formInqUpg2099", "formInqUpg2499", "formInqUpg2699", "formInqUpgOthers", "formInqVasAO", "formInqVasIptv", "formInqVasMOW", "formInqVasSAO", "formInqVasWMesh", "formInqVasOthers", "formInqWireReRoute"
+    ]
+
     // **********Follow-Up*****************************************************************************
     if (selectedValue === "formFFUP") { 
         const table = document.createElement("table");
@@ -379,6 +390,35 @@ function createForm2() {
                 "IPTV",
                 "Voice",
                 "Voice and Data" ]},
+            { label: "Status Reason", type: "select", name: "statusReason", options: [
+                "", 
+                "Awaiting Cignal Resolution", 
+                "Dispatched to Field Technician",
+                "Escalated to 3rd Party Vendor",
+                "Escalated to CCBO", 
+                "Escalated to L2", 
+                "Escalated to Network", 
+                "Escalated to Network - Re-Open", 
+                "TOK No Answer", 
+                "TOK Under Observation" ]},
+            { label: "Sub Status", type: "select", name: "subStatus", options: [
+                "", 
+                "Associated with the Parent Case",
+                "Disassociated from the Parent Case",
+                "Extracted to OFSC",
+                "Extracted to SDM",
+                "Extracted to SDM - Re-Open",
+                "Extraction to OFSC Failed - Fallout",
+                "Extraction to OFSC Failed - Retry Limit Exceeded",
+                "Extraction to SDM Failed - Fallout",
+                "Extraction to SDM Failed - Retry Limit Exceeded",
+                "Last Mile Resolved - Confirmed in OFSC",
+                "Network Resolved - Awaiting Customer Confirmation",
+                "Network Resolved - Last Mile",
+                "Non Tech Escalation - Return Ticket",
+                "Non Tech Escalation - Return Ticket Last Mile",
+                "Not Done - Return Ticket",
+                "Not Done - Return Ticket Network Outage" ]},
             { label: "Queue", type: "select", name: "queue", options: [
                 "", 
                 "FM POLL", 
@@ -412,7 +452,7 @@ function createForm2() {
             { label: "Nominated Mobile Number", type: "number", name: "nomiMobileNum" },
             { label: "No. of Follow-Up(s)", type: "select", name: "ffupCount", options: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Multiple" ]},
             { label: "Case Age (HH:MM)", type: "text", name: "ticketAge" },
-            { label: "Notes to Tech/ Actions Taken/ Add'l Remarks/ Decline Reason for ALS", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Notes to Tech/ Actions Taken/ Add'l Remarks/ Decline Reason for ALS", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved", type: "select", name: "issueResolved", options: [
                 "", 
                 "Yes", 
@@ -619,7 +659,7 @@ function createForm2() {
 
         function createFieldRow(field) {
             const row = document.createElement("tr");
-            row.style.display = (field.name === "cepCaseNumber" || field.name === "techRepairType" || field.name === "queue") ? "table-row" : "none";
+            row.style.display = (field.name === "cepCaseNumber" || field.name === "techRepairType" || field.name === "queue" || field.name === "statusReason" || field.name === "subStatus") ? "table-row" : "none";
 
             const td = document.createElement("td");
             const divInput = document.createElement("div");
@@ -725,7 +765,7 @@ function createForm2() {
         const issueResolved = document.querySelector("[name='issueResolved']");
 
         queue.addEventListener("change", () => {
-            resetAllFields(["techRepairType", "queue"]);
+            resetAllFields(["techRepairType", "statusReason","subStatus", "queue"]);
             if (queue.value === "FM POLL" || queue.value === "CCARE OFFBOARD") {
                 showFields(["ticketStatus", "ffupCount", "ticketAge", "remarks", "issueResolved"]);
                 hideSpecificFields(["projRed", "offerALS", "alsPackOffered", "effectiveDate", "nomiMobileNum", "investigation1", "investigation2", "investigation3", "investigation4", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks" ]);
@@ -746,7 +786,7 @@ function createForm2() {
         });
 
         projRed.addEventListener("change", () => {
-            resetAllFields(["techRepairType", "queue", "projRed"]);
+            resetAllFields(["techRepairType", "statusReason","subStatus", "queue", "projRed"]);
             if (projRed.value === "Yes") {
                 if (queue.value === "SDM CHILD" || queue.value ==="SDM" || queue.value ==="FSMG" || queue.value ==="L2 RESOLUTION" ) {
                     if (channelField === "CDT-HOTLINE") {
@@ -848,8 +888,9 @@ function createForm2() {
             ]},
             { label: "RX Power (L2)", type: "number", name: "rxPower", step: "any"},
             { label: "VLAN (L2)", type: "text", name: "vlan"},
+            { label: "Actions Taken in NMS Skin", type: "textarea", name: "nmsSkinRemarks", placeholder: "Leave this field blank if no action was taken." },
             // BSMP/Clearview
-            { label: "Clearview Reading (L2)", type: "text", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem" },
+            { label: "Clearview Reading (L2)", type: "textarea", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem - OLT to LCP, LCP to NAP, NAP to ONU" },
             // CEP Investigation Tagging
             { label: "Investigation 1", type: "select", name: "investigation1", options: [
                 "— Modem Light Status —",
@@ -910,7 +951,7 @@ function createForm2() {
                 "Secondary Trouble"
             ] },
             { label: "Actual Experience (L2)", type: "textarea", name: "actualExp", placeholder: "Please input the customer’s actual experience in detail.\ne.g. “NDT-NIC with red LOS” DO NOT input the WOCAS!"},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Defective Modem / Missing Modem",
@@ -1227,18 +1268,18 @@ function createForm2() {
             if (facility.value === "Fiber") {
                 if (selectedValue === "form100_1" || selectedValue === "form100_2" || selectedValue === "form100_3") {
                     showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                    hideSpecificFields(["resType", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form100_4" || selectedValue === "form100_5") {
                     if (channelField === "CDT-SOCMED") {
                         showFields(["onuSerialNum", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "cepCaseNumber", "sla", "specialInstruct", "rptCount"]);
-                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "cvReading", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
+                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
                     } else {
                         showFields(["onuSerialNum", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "cepCaseNumber", "sla", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
-                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "cvReading", "flmFindings", "issueResolved", "specialInstruct"]);
+                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "flmFindings", "issueResolved", "specialInstruct"]);
                     }
                 } else {
                     showFields(["onuSerialNum", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -1249,18 +1290,18 @@ function createForm2() {
             } else if (facility.value === "Fiber - Radius") {
                 if (selectedValue === "form100_1" || selectedValue === "form100_2" || selectedValue === "form100_3") {
                     showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "flmFindings", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "flmFindings", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form100_4" || selectedValue === "form100_5") {
                     if (channelField === "CDT-SOCMED") {
                         showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "flmFindings", "cepCaseNumber", "sla", "specialInstruct", "rptCount"]);
-                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
+                        hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
                     } else {
                         showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "cepCaseNumber", "sla", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                         hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "flmFindings", "issueResolved", "specialInstruct"]);
                     }
                 } else {
                     alert("This form is currently unavailable for customers with Fiber - Radius service.");
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     const facilityField = document.querySelector('[name="facility"]');
                     if (facilityField) facilityField.value = "";
@@ -1268,10 +1309,10 @@ function createForm2() {
                 }
             } else if (facility.value === "Copper VDSL") {
                 showFields(["resType"]);
-                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -1287,7 +1328,7 @@ function createForm2() {
             if (resType.value === "Yes") {
                 if (selectedValue === "form100_1" || selectedValue === "form100_2" || selectedValue === "form100_3") {
                     showFields(["outageStatus", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -1296,7 +1337,7 @@ function createForm2() {
                     }
                 } else if (selectedValue === "form100_4" || selectedValue === "form100_5") {
                     showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -1305,7 +1346,7 @@ function createForm2() {
                     }
                 } else {
                     alert("This form is currently unavailable for customers with Fiber - DSL service.");
-                    hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     const resTypeField = document.querySelector('[name="resType"]');
                     if (resTypeField) resTypeField.value = "";
@@ -1313,7 +1354,7 @@ function createForm2() {
                 }
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             }
             updateToolLabelVisibility();
         });
@@ -1323,13 +1364,13 @@ function createForm2() {
             if (outageStatus.value === "Yes") {
                 if (channelField === "CDT-SOCMED") {
                     showFields(["outageReference", "pcNumber", "flmFindings", "cepCaseNumber", "sla", "specialInstruct", "rptCount"]);
-                    hideSpecificFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
+                    hideSpecificFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
                 } else {
                     showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
-                    hideSpecificFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "flmFindings", "issueResolved", "specialInstruct"]);
+                    hideSpecificFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "flmFindings", "issueResolved", "specialInstruct"]);
                 }
             } else {
-                showFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "cvReading", "actualExp", "flmFindings", "issueResolved"]);
+                showFields(["onuSerialNum", "onuRunStats", "rxPower", "vlan", "nmsSkinRemarks", "cvReading", "actualExp", "flmFindings", "issueResolved"]);
                 hideSpecificFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             }
             updateToolLabelVisibility();
@@ -1400,8 +1441,10 @@ function createForm2() {
             { label: "FXS1 Status", type: "text", name: "fsx1Status" },
             { label: "Routing Index", type: "text", name: "routingIndex" },
             { label: "Call Source", type: "text", name: "callSource" },
+            { label: "Actions Taken in NMS Skin", type: "textarea", name: "nmsSkinRemarks", placeholder: "Leave this field blank if no action was taken." },
             // DMS
             { label: "Voice Status", type: "text", name: "dmsVoipServiceStatus" },
+            { label: "Actions Taken in DMS", type: "textarea", name: "dmsRemarks", placeholder: "Leave this field blank if no action was taken." },
             // CEP Investigation Tagging
             { label: "Investigation 1", type: "select", name: "investigation1", options: [
                 "— Modem Light Status —",
@@ -1452,7 +1495,7 @@ function createForm2() {
                 "With Ring Back Tone"
             ] },
             { label: "Actual Experience (L2)", type: "textarea", name: "actualExp", placeholder: "Please input the customer’s actual experience in detail.\ne.g. “No outgoing”, “Busy tone only when dialing”. DO NOT input the WOCAS!"},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Defective Cable / Cord",
@@ -1724,13 +1767,13 @@ function createForm2() {
             if (facility.value === "Fiber") {
                 if (selectedValue === "form101_1" || selectedValue === "form101_2" || selectedValue === "form101_3" || selectedValue === "form103_4" || selectedValue === "form103_5" || selectedValue === "form102_1" || selectedValue === "form102_2" || selectedValue === "form102_3") {
                     showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                    hideSpecificFields(["resType", "serviceStatus", "services", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "serviceStatus", "services", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form103_1" || selectedValue === "form103_2") {
                     showFields(["serviceStatus", "outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                    hideSpecificFields(["resType", "services", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "services", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -1740,7 +1783,7 @@ function createForm2() {
                 }
             } else if (facility.value === "Fiber - Radius") {
                 showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -1749,10 +1792,10 @@ function createForm2() {
                 }
             } else if (facility.value === "Copper VDSL") {
                 showFields(["resType"]);
-                hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "investigation1", "investigation2", "investigation3", "investigation4", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "investigation1", "investigation2", "investigation3", "investigation4", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -1769,17 +1812,17 @@ function createForm2() {
             if (resType.value === "Yes") {
                 if (selectedValue === "form101_1" || selectedValue === "form101_2") {
                     showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["serviceStatus", "services", "outageReference", "pcNumber", "onuSerialNum", "oltAndOnuConnectionType", "dmsVoipServiceStatus", "fsx1Status", "routingIndex", "callSource", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["serviceStatus", "services", "outageReference", "pcNumber", "onuSerialNum", "oltAndOnuConnectionType", "dmsVoipServiceStatus", "dmsRemarks", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form101_3") {
                     showFields(["services", "outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["serviceStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["serviceStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 }
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["serviceStatus", "services", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             }
 
             if (channelField === "CDT-SOCMED") {
@@ -1796,29 +1839,29 @@ function createForm2() {
             if (outageStatus.value === "No" && facility.value === "Fiber") {
                 if (selectedValue === "form101_1" || selectedValue === "form101_2" || selectedValue === "form101_3") {
                     showFields(["onuSerialNum", "oltAndOnuConnectionType", "actualExp", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "dmsVoipServiceStatus", "fsx1Status", "routingIndex", "callSource", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "dmsVoipServiceStatus", "dmsRemarks", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form103_1" || selectedValue === "form103_2" || selectedValue === "form103_4" || selectedValue === "form103_5") {
-                    showFields(["onuSerialNum", "dmsVoipServiceStatus", "fsx1Status", "routingIndex", "callSource", "actualExp", "issueResolved"]);
+                    showFields(["onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "issueResolved"]);
                     hideSpecificFields(["outageReference", "pcNumber", "oltAndOnuConnectionType", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 }
             } else if (outageStatus.value === "No" && resType.value === "Yes" && services.value === "Voice Only") {
                 if (selectedValue === "form101_3") {
-                    showFields(["onuSerialNum", "dmsVoipServiceStatus", "actualExp", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    showFields(["onuSerialNum", "dmsVoipServiceStatus", "dmsRemarks", "actualExp", "issueResolved"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 }
             } else if (outageStatus.value === "No" && resType.value === "Yes" && services.value === "Bundled") {
                 showFields(["onuSerialNum", "issueResolved"]);
-                hideSpecificFields(["outageReference", "pcNumber", "dmsVoipServiceStatus", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["outageReference", "pcNumber", "dmsVoipServiceStatus", "dmsRemarks", "oltAndOnuConnectionType", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 if (channelField === "CDT-SOCMED") {
                     showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "specialInstruct", "rptCount"]);
-                    hideSpecificFields(["oltAndOnuConnectionType", "dmsVoipServiceStatus", "fsx1Status", "routingIndex", "callSource", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
+                    hideSpecificFields(["oltAndOnuConnectionType", "dmsVoipServiceStatus", "dmsRemarks", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
                 } else {
                     showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
-                    hideSpecificFields(["oltAndOnuConnectionType", "dmsVoipServiceStatus", "fsx1Status", "routingIndex", "callSource", "issueResolved", "specialInstruct"]);
+                    hideSpecificFields(["oltAndOnuConnectionType", "dmsVoipServiceStatus", "dmsRemarks", "fsx1Status", "routingIndex", "callSource", "nmsSkinRemarks", "issueResolved", "specialInstruct"]);
                 }
             }
 
@@ -1916,8 +1959,9 @@ function createForm2() {
             { label: "VLAN", type: "text", name: "vlan"},
             { label: "IP Address", type: "text", name: "ipAddress"},
             { label: "No. of Connected Devices", type: "text", name: "connectedDevices", placeholder: "e.g. 2 on 2.4G, 3 on 5G"},
+            { label: "Actions Taken in NMS Skin", type: "textarea", name: "nmsSkinRemarks", placeholder: "Leave this field blank if no action was taken." },
             // Clearview
-            { label: "Clearview Reading (L2)", type: "text", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem" },
+            { label: "Clearview Reading (L2)", type: "textarea", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem - OLT to LCP, LCP to NAP, NAP to ONU" },
             // Probing
             { label: "Connection Method", type: "select", name: "connectionMethod", options: [
                 "", 
@@ -1935,7 +1979,7 @@ function createForm2() {
                 "Subs-owned"
             ]},
             // DMS
-            { label: "DMS Status (L2)", type: "select", name: "dmsStatus", options: ["", "Offline", "Online"]},
+            { label: "DMS Status (L2)", type: "select", name: "dmsStatus", options: ["", "Up/Active", "Down", "Failed to Refresh Parameters", "No Elements Found"]},
             { label: "ONU Model (L2)", type: "text", name: "onuModel"},
             { label: "WiFi State", type: "select", name: "dmsWifiState", options: [
                 "", 
@@ -1947,6 +1991,7 @@ function createForm2() {
                 "Disabled", 
                 "Enabled"
             ]},
+            { label: "Actions Taken in DMS", type: "textarea", name: "dmsRemarks", placeholder: "Leave this field blank if no action was taken." },
             // CEP Investigation Tagging
             { label: "Investigation 1", type: "select", name: "investigation1", options: [
                 "— Modem Light Status —",
@@ -2005,7 +2050,7 @@ function createForm2() {
                 "Secondary Trouble"
             ]},
             { label: "Actual Experience (L2)", type: "textarea", name: "actualExp", placeholder: "Please input the customer’s actual experience in detail.\ne.g. “No internet connection using WiFi”. DO NOT input the WOCAS!"},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Cannot Browse",
@@ -2263,10 +2308,10 @@ function createForm2() {
             if (facility.value === "Fiber") {
                 if (selectedValue === "form500_1" || selectedValue === "form500_2") {
                     showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                    hideSpecificFields(["resType", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -2277,7 +2322,7 @@ function createForm2() {
             } else if (facility.value === "Fiber - Radius") {
                 if (selectedValue === "form500_1") {
                     showFields(["connectionMethod", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "meshtype", "meshOwnership", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "meshtype", "meshOwnership", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -2286,7 +2331,7 @@ function createForm2() {
                     }
                 } else if (selectedValue === "form500_3" || selectedValue === "form500_4") {
                     showFields(["meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -2296,7 +2341,7 @@ function createForm2() {
                 } else {
                     alert("This form is currently unavailable for customers with Fiber - Radius service.");
                     resetAllFields([]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     const facilityField = document.querySelector('[name="facility"]');
                     if (facilityField) facilityField.value = "";
@@ -2304,10 +2349,10 @@ function createForm2() {
                 }
             } else if (facility.value === "Copper VDSL") {
                 showFields(["resType"]);
-                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -2324,10 +2369,10 @@ function createForm2() {
             if (resType.value === "Yes") {
                 if (selectedValue=== "form500_1" || selectedValue === "form500_2") {
                     showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -2337,7 +2382,7 @@ function createForm2() {
                 }
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["outageStatus", "outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "meshtype", "meshOwnership", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "issueResolved", "cepCaseNumber", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -2353,22 +2398,22 @@ function createForm2() {
             resetAllFields(["facility", "resType", "outageStatus"]);
             if (outageStatus.value === "No") {
                 if (selectedValue === "form500_1" && facility.value === "Fiber") {
-                    showFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "cvReading", "dmsStatus", "onuModel", "connectionMethod", "actualExp", "issueResolved"]);
+                    showFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsRemarks", "connectionMethod", "actualExp", "issueResolved"]);
                     hideSpecificFields(["outageReference", "pcNumber", "rxPower", "vlan", "ipAddress", "connectedDevices", "dmsWifiState", "dmsLanPortStatus", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else if (selectedValue === "form500_1" && facility.value === "Copper VDSL") {
                     showFields(["onuSerialNum", "connectionMethod", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 } else {
                     showFields(["onuSerialNum", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "equipmentBrand", "modemBrand", "onuConnectionType", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
                 }
             } else {
                 if (channelField === "CDT-SOCMED") {
                     showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "specialInstruct", "rptCount"]);
-                    hideSpecificFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
+                    hideSpecificFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "issueResolved", "contactName", "cbr", "availability", "address", "landmarks"]);
                 } else {
                     showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
-                    hideSpecificFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "connectionMethod", "actualExp", "issueResolved", "specialInstruct"]);
+                    hideSpecificFields(["equipmentBrand", "modemBrand", "onuConnectionType", "onuSerialNum", "rxPower", "vlan", "ipAddress", "connectedDevices", "nmsSkinRemarks", "cvReading", "dmsStatus", "onuModel", "dmsWifiState", "dmsLanPortStatus", "dmsRemarks", "connectionMethod", "actualExp", "issueResolved", "specialInstruct"]);
                 }
             }
 
@@ -2485,13 +2530,15 @@ function createForm2() {
             { label: "RX Power/OPTICSRXPOWER", type: "number", name: "rxPower", step: "any", placeholder: "Also available in Clearview."},
             { label: "SAAA Bandwidth Code (L2)", type: "text", name: "saaaBandwidthCode"},
             { label: "Connected Devices (L2)", type: "text", name: "connectedDevices", placeholder: "e.g. 2 on 2.4G, 3 on 5G, 2 LAN(Desktop/Laptop and Mesh)"},
+            { label: "Actions Taken in NMS Skin", type: "textarea", name: "nmsSkinRemarks", placeholder: "Leave this field blank if no action was taken." },
             // BSMP/Clearview
-            { label: "Clearview Reading (L2)", type: "text", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem." },
+            { label: "Clearview Reading (L2)", type: "textarea", name: "cvReading", placeholder: "e.g. Without FTTH Line Problem - OLT to LCP, LCP to NAP, NAP to ONU" },
             // DMS
             { label: "ONU Model", type: "text", name: "onuModel"},
-            { label: "DMS Status (L2)", type: "select", name: "dmsStatus", options: ["", "Offline", "Online"]},
+            { label: "DMS Status (L2)", type: "select", name: "dmsStatus", options: ["", "Up/Active", "Down", "Failed to Refresh Parameters", "No Elements Found"]},
             { label: "WiFi Band of the Device (L2)", type: "text", name: "deviceWifiBand", placeholder: "e.g. Device used found in 5G WiFi" },
-            { label: "Bandsteering (L2)", type: "select", name: "bandsteering", options: ["", "Yes", "No"]},
+            { label: "Bandsteering (L2)", type: "select", name: "bandsteering", options: ["", "Yes - Single Band", "No - Dual Band"]},
+            { label: "Actions Taken in DMS", type: "textarea", name: "dmsRemarks", placeholder: "Leave this field blank if no action was taken." },
             // Probing
             { label: "Connection Method", type: "select", name: "connectionMethod", options: [
                 "", 
@@ -2545,7 +2592,7 @@ function createForm2() {
                 "Without historical alarms"
             ]},
             { label: "Actual Experience (L2)", type: "textarea", name: "actualExp", placeholder: "Please input the customer’s actual experience in detail.\ne.g. “Only Acquiring 180MBPS.” DO NOT input the WOCAS!"},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Failed RX",
@@ -2795,10 +2842,10 @@ function createForm2() {
             resetAllFields(["facility"]);
             if (facility.value === "Fiber") {
                 showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                hideSpecificFields(["resType", "planDetails", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "planDetails", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else if (facility.value === "Fiber - Radius") {
                 showFields(["planDetails", "connectionMethod", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "remarks", "issueResolved"]);
-                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings"]);
@@ -2807,10 +2854,10 @@ function createForm2() {
                 }
             } else if (facility.value === "Copper VDSL") {
                 showFields(["resType"]);
-                hideSpecificFields(["planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "remarks", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["resType", "planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["resType", "planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             }
 
             updateToolLabelVisibility(); 
@@ -2820,10 +2867,10 @@ function createForm2() {
             resetAllFields(["facility", "resType"]);
             if (resType.value === "Yes") {
                 showFields(["outageStatus", "investigation1", "investigation2", "investigation3", "investigation4", "remarks"]);
-                hideSpecificFields(["planDetails", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["planDetails", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "flmFindings", "issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             } else {
                 showFields(["remarks"]);
-                hideSpecificFields(["planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                hideSpecificFields(["planDetails", "outageStatus", "outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "investigation1", "investigation2", "investigation3", "investigation4", "actualExp", "flmFindings" ,"issueResolved", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
             }
 
             updateToolLabelVisibility(); 
@@ -2833,7 +2880,7 @@ function createForm2() {
             resetAllFields(["facility", "resType", "outageStatus"]);
             if (outageStatus.value === "Yes") {
                 showFields(["outageReference", "pcNumber", "cepCaseNumber", "sla", "rptCount"]);
-                hideSpecificFields(["onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "issueResolved"]);
+                hideSpecificFields(["onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "deviceBrandAndModel", "pingTestResult", "speedTestResult", "actualExp", "issueResolved"]);
 
                 if (channelField === "CDT-SOCMED") {
                     showFields(["flmFindings", "specialInstruct"]);
@@ -2844,7 +2891,7 @@ function createForm2() {
                 }
             } else {
                 if (facility.value === "Fiber") {
-                    showFields(["planDetails", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "connectionMethod", "pingTestResult", "speedTestResult", "actualExp", "issueResolved"]);
+                    showFields(["planDetails", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "connectionMethod", "pingTestResult", "speedTestResult", "actualExp", "issueResolved"]);
                     hideSpecificFields(["outageReference", "pcNumber", "deviceBrandAndModel", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
@@ -2854,7 +2901,7 @@ function createForm2() {
                     }
                 } else {
                     showFields(["planDetails", "connectionMethod", "pingTestResult", "speedTestResult", "issueResolved"]);
-                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "deviceBrandAndModel", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
+                    hideSpecificFields(["outageReference", "pcNumber", "onuSerialNum", "rxPower", "saaaBandwidthCode", "connectedDevices", "nmsSkinRemarks", "cvReading", "onuModel", "dmsStatus", "deviceWifiBand", "bandsteering", "dmsRemarks", "deviceBrandAndModel", "actualExp", "cepCaseNumber", "sla", "specialInstruct", "contactName", "cbr", "availability", "address", "landmarks", "rptCount"]);
 
                     if (channelField === "CDT-SOCMED") {
                         showFields(["flmFindings"]);
@@ -2942,7 +2989,7 @@ function createForm2() {
                 "FCR - Cannot Browse",
                 "Not Applicable [via Store]",
             ]},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Manual Troubleshooting",
@@ -3359,7 +3406,7 @@ function createForm2() {
             { label: "Smartcard ID", type: "text", name: "smartCardID"},
             { label: "Cignal Plan", type: "text", name: "cignalPlan"},
             { label: "Actual Experience", type: "textarea", name: "actualExp", placeholder: "Please input the customer's actual experience. e.g. “With IP but no tune service multicast” DO NOT input the WOCAS!"},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Cignal Retracking",
@@ -3862,7 +3909,7 @@ function createForm2() {
                 "Request Modem/ONU GUI Access",
                 "Request Modem/ONU GUI Access [InterOP]"
             ]},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "FLM Findings", type: "select", name: "flmFindings", options: [
                 "",
                 "Defective Modem",
@@ -4220,7 +4267,7 @@ function createForm2() {
                 "FCR - Device - Advised Physical Set Up",
                 "FCR - Device for Replacement in Store"
             ]},
-            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, “CONDUCT BTS”, “CREATE FT”, or “PROVIDE SLA/PLDT TRACKER”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Troubleshooting/ Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Ensure that all actions performed in each tool are properly documented. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
                 "Yes", 
@@ -4432,7 +4479,7 @@ function createForm2() {
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Service Request #", type: "number", name: "srNum" },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
@@ -4618,7 +4665,7 @@ function createForm2() {
 
         const fields = [
             { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Ownership", type: "select", name: "ownership", options: [
                 "", 
                 "SOR", 
@@ -4810,7 +4857,7 @@ function createForm2() {
 
         const fields = [
             { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
                 "Yes",
@@ -4951,7 +4998,7 @@ function createForm2() {
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
             { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
@@ -5152,7 +5199,7 @@ function createForm2() {
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
             { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
@@ -5373,7 +5420,7 @@ function createForm2() {
                 "Technician",
                 "Telesales"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
             { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
@@ -5525,24 +5572,32 @@ function createForm2() {
         form2Container.appendChild(buttonTable);
     
     //******************** INQUIRY: Account/Service Status	 ********************************************************
-    } else if (selectedValue === "formInqAccSrvcStatus") {
+    } else if (inquiryForms.includes(selectedValue)) { 
         const table = document.createElement("table");
 
         const fields = [
-            { label: "Concern", type: "select", name: "custConcern", options: [
-                "", 
-                "Account Status", 
-                "Service Status"
-            ]},
+            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
             { label: "Customer Authentication", type: "select", name: "custAuth", options: [
                 "", 
                 "Failed", 
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
-            { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
+                "", 
+                "Yes",
+                "No - Customer is Unresponsive",
+                "No - Customer Declined Further Assistance",
+                "No - System Ended Chat"
+            ] },
+            { label: "Upsell", type: "select", name: "upsell", options: [
+                "", 
+                "Yes - Accepted", 
+                "No - Declined",
+                "No - Ignored",
+                "NA - Not Eligible"
+            ]}
         ];
 
         function createInstructionsRow() {
@@ -5579,56 +5634,33 @@ function createForm2() {
             return row;
         }
 
-        function createPromptRow() {
-            const custConcernEl = document.querySelector('[name="custConcern"]');
+        // function createPromptRow() {
+        //     const row = document.createElement("tr");
+        //     const td = document.createElement("td");
 
-            const custConcern = custConcernEl ? custConcernEl.value : "";
+        //     const checklistDiv = document.createElement("div");
+        //     checklistDiv.className = "form2DivChecklist"; 
 
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
+        //     const header = document.createElement("p");
+        //     header.textContent = "Definition";
+        //     header.className = "requirements-header";
+        //     checklistDiv.appendChild(header);
 
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist";
+        //     const ul = document.createElement("ul");
+        //     ul.className = "checklist";
 
-            const req = document.createElement("p");
-            req.textContent = "Definition";
-            req.className = "requirements-header";
-            checklistDiv.appendChild(req);
+        //     const li1 = document.createElement("li");
+        //     li1.textContent = "The customer asked when their 36-month lock-in contract began and when it will end.";
+        //     ul.appendChild(li1);
 
-            const ulReq = document.createElement("ul");
-            ulReq.className = "checklist";
+        //     checklistDiv.appendChild(header);
+        //     checklistDiv.appendChild(ul);
 
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquires about the status of their account.";
+        //     td.appendChild(checklistDiv);
+        //     row.appendChild(td);
 
-            const li2 = document.createElement("li");
-            li2.textContent = "The customer inquires about the status of their services.";
-
-            if (custConcern === "Account Status") {
-                ulReq.appendChild(li1);
-            } else if (custConcern === "Service Status") {
-                ulReq.appendChild(li2);
-            }
-
-            checklistDiv.appendChild(ulReq);
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        let custConcernRow = null;
-
-        function updateChecklist() {
-            const existingChecklist = document.querySelector(".form2DivChecklist")?.parentElement?.parentElement;
-            if (existingChecklist) {
-                existingChecklist.remove();
-            }
-            const checklistRow = createPromptRow();
-            if (custConcernRow && custConcernRow.parentNode) {
-                custConcernRow.parentNode.insertBefore(checklistRow, custConcernRow.nextSibling);
-            }
-        }
+        //     return row;
+        // }
 
         function createFieldRow(field) {
             const row = document.createElement("tr");
@@ -5637,7 +5669,7 @@ function createForm2() {
             divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
 
             const label = document.createElement("label");
-            label.textContent = field.label;
+            label.textContent = `${field.label}`;
             label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
             label.setAttribute("for", field.name);
 
@@ -5646,30 +5678,33 @@ function createForm2() {
                 input = document.createElement("select");
                 input.name = field.name;
                 input.className = "form2-input";
-                if (field.name === "custConcern") {
-                    input.id = field.name;
-                }
-
-                field.options.forEach((optionText, index) => {
+                field.options.forEach((optionText, index)=> {
                     const option = document.createElement("option");
                     option.value = optionText;
                     option.textContent = optionText;
+
                     if (index === 0) {
-                    option.disabled = true;
-                    option.selected = true;
-                    option.style.fontStyle = "italic";
+                        option.disabled = true;
+                        option.selected = true;
+                        option.style.fontStyle = "italic";
                     }
+
                     input.appendChild(option);
                 });
-
-                if (field.name === "custConcern") {
-                    input.addEventListener("change", updateChecklist);
-                }
             } else if (field.type === "textarea") {
                 input = document.createElement("textarea");
                 input.name = field.name;
                 input.className = "form2-textarea";
-                input.rows = field.name === "remarks" ? 6 : 2;
+                input.rows = (field.name === "remarks") 
+                        ? 6 
+                        : 2;
+                if (field.placeholder) input.placeholder = field.placeholder;
+            } else {
+                input = document.createElement("input");
+                input.type = field.type;
+                input.name = field.name;
+                input.className = "form2-input";
+                if (field.step) input.step = field.step;
                 if (field.placeholder) input.placeholder = field.placeholder;
             }
 
@@ -5680,30 +5715,35 @@ function createForm2() {
 
             return row;
         }
-
-        table.appendChild(createInstructionsRow());
-
-        fields.forEach(field => {
+        
+        table.appendChild(createInstructionsRow()); 
+        fields.forEach((field, index) => {
             const row = createFieldRow(field);
             table.appendChild(row);
-            if (field.name === "custConcern") {
-            custConcernRow = row;
-            }
+
+            // if (field.name === "custAuth") {
+            //     table.appendChild(createPromptRow());
+            // }
         });
 
         form2Container.appendChild(table);
 
         const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [fuseButtonHandler, sfTaggingButtonHandler, saveFormData, resetButtonHandler];
+        const buttonHandlers = [
+            fuseButtonHandler,
+            sfTaggingButtonHandler,
+            saveFormData,
+            resetButtonHandler,
+        ];
         const buttonTable = createButtons(buttonLabels, buttonHandlers);
         form2Container.appendChild(buttonTable);
-    
-    //******************** INQUIRY: Bill Interpretation (Prorate / Breakdown) ***************************************
+
+    //******************** INQUIRY: Outstanding Balance ****************************************************
     } else if (selectedValue === "formInqBillInterpret") {
         const table = document.createElement("table");
 
         const fields = [
-            { label: "Concern", type: "select", name: "custConcern", options: [
+            { label: "Bill Interpretation for", type: "select", name: "subType", options: [
                 "", 
                 "Add On Service", 
                 "New Connect",
@@ -5712,13 +5752,14 @@ function createForm2() {
                 "Downgrade",
                 "Migration"
             ]},
+            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
             { label: "Customer Authentication", type: "select", name: "custAuth", options: [
                 "", 
                 "Failed", 
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
             { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
@@ -5757,67 +5798,6 @@ function createForm2() {
             return row;
         }
 
-        function createPromptRow() {
-            const custConcernEl = document.querySelector('[name="custConcern"]');
-
-            const custConcern = custConcernEl ? custConcernEl.value : "";
-
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist";
-
-            const req = document.createElement("p");
-            req.textContent = "Definition";
-            req.className = "requirements-header";
-            checklistDiv.appendChild(req);
-
-            const ulReq = document.createElement("ul");
-            ulReq.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired about the breakdown of their bill due to an add-on service.";
-
-            const li2 = document.createElement("li");
-            li2.textContent = "The customer inquired about the details of their first bill or its prorated charges.";
-
-            const li3 = document.createElement("li");
-            li3.textContent = "The customer inquired about their bill in relation to the relocation process, including any applicable fees and prorated charges after relocation.";
-
-            const li4 = document.createElement("li");
-            li4.textContent = "The customer inquired about their bill related to an upgrade, downgrade, or migration, including any fees and prorated charges after the process.";
-
-            if (custConcern === "Add On Service") {
-                ulReq.appendChild(li1);
-            } else if (custConcern === "New Connect") {
-                ulReq.appendChild(li2);
-            } else if (custConcern === "Relocation") {
-                ulReq.appendChild(li3);
-            } else if (custConcern === "Upgrade" || custConcern === "Downgrade" || custConcern === "Migration") {
-                ulReq.appendChild(li4);
-            }
-
-            checklistDiv.appendChild(ulReq);
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        let custConcernRow = null;
-
-        function updateChecklist() {
-            const existingChecklist = document.querySelector(".form2DivChecklist")?.parentElement?.parentElement;
-            if (existingChecklist) {
-                existingChecklist.remove();
-            }
-            const checklistRow = createPromptRow();
-            if (custConcernRow && custConcernRow.parentNode) {
-                custConcernRow.parentNode.insertBefore(checklistRow, custConcernRow.nextSibling);
-            }
-        }
-
         function createFieldRow(field) {
             const row = document.createElement("tr");
             const td = document.createElement("td");
@@ -5834,9 +5814,6 @@ function createForm2() {
                 input = document.createElement("select");
                 input.name = field.name;
                 input.className = "form2-input";
-                if (field.name === "custConcern") {
-                    input.id = field.name;
-                }
 
                 field.options.forEach((optionText, index) => {
                     const option = document.createElement("option");
@@ -5874,9 +5851,6 @@ function createForm2() {
         fields.forEach(field => {
             const row = createFieldRow(field);
             table.appendChild(row);
-            if (field.name === "custConcern") {
-            custConcernRow = row;
-            }
         });
 
         form2Container.appendChild(table);
@@ -5887,14 +5861,216 @@ function createForm2() {
         form2Container.appendChild(buttonTable);
     
     //******************** INQUIRY: Approved rebate / Credit Adjustment	 ********************************************
-    } else if (selectedValue === "formInqRebCredAdj") {
+    } else if (selectedValue === "formInqPermaDisc") {
         const table = document.createElement("table");
 
         const fields = [
-            { label: "Concern", type: "select", name: "custConcern", options: [
+            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
+            { label: "Ownership", type: "select", name: "ownership", options: ["", "SOR", "Non-SOR"] },
+            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
                 "", 
-                "Approved Rebate", 
-                "Approved Credit Adjustment"
+                "Failed", 
+                "Passed",
+                "NA"
+            ]},
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
+                "", 
+                "Yes",
+                "No - Customer is Unresponsive",
+                "No - Customer Declined Further Assistance",
+                "No - System Ended Chat"
+            ] },
+            { label: "Upsell", type: "select", name: "upsell", options: [
+                "", 
+                "Yes - Accepted", 
+                "No - Declined",
+                "No - Ignored",
+                "NA - Not Eligible"
+            ]}
+        ];
+
+        function createInstructionsRow() {
+            const row = document.createElement("tr");
+            const td = document.createElement("td");
+
+            const instructionsDiv = document.createElement("div");
+            instructionsDiv.className = "form2DivInput"; 
+
+            const ul = document.createElement("ul");
+            ul.className = "instructions-list";
+
+            const li1 = document.createElement("li");
+            li1.textContent = "Please fill out all required fields.";
+            ul.appendChild(li1);
+
+            const li2 = document.createElement("li");
+            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
+            ul.appendChild(li2);
+
+            const li3 = document.createElement("li");
+            li3.textContent = "Ensure that the information is accurate.";
+            ul.appendChild(li3);
+
+            const li4 = document.createElement("li");
+            li4.textContent = "Please review your inputs before generating the notes.";
+            ul.appendChild(li4);
+
+            instructionsDiv.appendChild(ul);
+
+            td.appendChild(instructionsDiv);
+            row.appendChild(td);
+
+            return row;
+        }
+
+        function createPromptRow() {
+            const ownershipEl = document.querySelector('[name="ownership"]');
+            const ownership = ownershipEl ? ownershipEl.value : "";
+
+            const row = document.createElement("tr");
+            const td = document.createElement("td");
+
+            const checklistDiv = document.createElement("div");
+            checklistDiv.className = "form2DivChecklist";
+
+            const req = document.createElement("p");
+            req.textContent = "Requirements:";
+            req.className = "requirements-header";
+            checklistDiv.appendChild(req);
+
+            const ulReq = document.createElement("ul");
+            ulReq.className = "checklist";
+
+            const li1 = document.createElement("li");
+            li1.textContent = "Picture of Valid ID ";
+
+            const li2 = document.createElement("li");
+            li2.textContent = "Proof of Payment-Final Amount ";
+
+            const li3 = document.createElement("li");
+            li3.textContent = "Duly signed Letter of Undertaking (LOU)​";
+
+            const li4 = document.createElement("li");
+            li4.textContent = "Letter of Authorization signed by the SOR";
+
+            const li5 = document.createElement("li");
+            li5.textContent = "One (1) valid ID of the representative ";
+
+            const li6 = document.createElement("li");
+            li6.textContent = "For Deceased SOR – Death Certificate and Valid ID of requestor";
+
+            if (ownership === "SOR") {
+                [li1, li2, li3].forEach(li => ulReq.appendChild(li));
+            } else if (ownership === "Non-SOR") {
+                [li4, li5, li6].forEach(li => ulReq.appendChild(li));
+            }
+
+            checklistDiv.appendChild(ulReq);
+            td.appendChild(checklistDiv);
+            row.appendChild(td);
+
+            return row;
+        }
+
+        let ownershipRow = null;
+
+        function updateChecklist() {
+            const existingChecklist = document.querySelector(".form2DivChecklist")?.parentElement?.parentElement;
+            if (existingChecklist) {
+                existingChecklist.remove();
+            }
+            const checklistRow = createPromptRow();
+            if (ownershipRow && ownershipRow.parentNode) {
+                ownershipRow.parentNode.insertBefore(checklistRow, ownershipRow.nextSibling);
+            }
+        }
+
+        function createFieldRow(field) {
+            const row = document.createElement("tr");
+            const td = document.createElement("td");
+            const divInput = document.createElement("div");
+            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
+
+            const label = document.createElement("label");
+            label.textContent = field.label;
+            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
+            label.setAttribute("for", field.name);
+
+            let input;
+            if (field.type === "select") {
+                input = document.createElement("select");
+                input.name = field.name;
+                input.className = "form2-input";
+                if (field.name === "ownership") {
+                    input.id = field.name;
+                }
+
+                field.options.forEach((optionText, index) => {
+                    const option = document.createElement("option");
+                    option.value = optionText;
+                    option.textContent = optionText;
+                    if (index === 0) {
+                    option.disabled = true;
+                    option.selected = true;
+                    option.style.fontStyle = "italic";
+                    }
+                    input.appendChild(option);
+                });
+
+                if (field.name === "ownership") {
+                    input.addEventListener("change", updateChecklist);
+                }
+            } else if (field.type === "textarea") {
+                input = document.createElement("textarea");
+                input.name = field.name;
+                input.className = "form2-textarea";
+                input.rows = field.name === "remarks" ? 6 : 2;
+                if (field.placeholder) input.placeholder = field.placeholder;
+            }
+
+            divInput.appendChild(label);
+            divInput.appendChild(input);
+            td.appendChild(divInput);
+            row.appendChild(td);
+
+            return row;
+        }
+
+        table.appendChild(createInstructionsRow());
+
+        fields.forEach(field => {
+            const row = createFieldRow(field);
+            table.appendChild(row);
+            if (field.name === "ownership") {
+                ownershipRow = row;
+            }
+        });
+
+        form2Container.appendChild(table);
+
+        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
+        const buttonHandlers = [fuseButtonHandler, sfTaggingButtonHandler, saveFormData, resetButtonHandler];
+        const buttonTable = createButtons(buttonLabels, buttonHandlers);
+        form2Container.appendChild(buttonTable);
+    
+    //******************** INQUIRY: Outstanding Balance	 ********************************************
+    } else if (selectedValue === "formInqOutsBal") {
+        const table = document.createElement("table");
+
+        const fields = [
+            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
+            { label: "Outstanding Balance for", type: "select", name: "subType", options: [
+                "", 
+                "Downgrade Fee", 
+                "Existing Customer",
+                "Modem & Installation Fee",
+                "New Connect",
+                "Payment Adjustment",
+                "Rebate",
+                "Refund",
+                "SCC (Transfer fee, Reroute, Change Unit)",
+                
             ]},
             { label: "Customer Authentication", type: "select", name: "custAuth", options: [
                 "", 
@@ -5902,7 +6078,7 @@ function createForm2() {
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
             { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
@@ -5941,56 +6117,6 @@ function createForm2() {
             return row;
         }
 
-        function createPromptRow() {
-            const custConcernEl = document.querySelector('[name="custConcern"]');
-            const custConcern = custConcernEl ? custConcernEl.value : "";
-
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist";
-
-            const req = document.createElement("p");
-            req.textContent = "Definition";
-            req.className = "requirements-header";
-            checklistDiv.appendChild(req);
-
-            const ulReq = document.createElement("ul");
-            ulReq.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired whether their rebate was approved.";
-
-            const li2 = document.createElement("li");
-            li2.textContent = "The customer inquired whether their credit adjustment was approved.";
-
-            if (custConcern === "Approved Rebate") {
-                ulReq.appendChild(li1);
-            } else if (custConcern === "Approved Credit Adjustment") {
-                ulReq.appendChild(li2);
-            }
-
-            checklistDiv.appendChild(ulReq);
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        let custConcernRow = null;
-
-        function updateChecklist() {
-            const existingChecklist = document.querySelector(".form2DivChecklist")?.parentElement?.parentElement;
-            if (existingChecklist) {
-            existingChecklist.remove();
-            }
-            const checklistRow = createPromptRow();
-            if (custConcernRow && custConcernRow.parentNode) {
-            custConcernRow.parentNode.insertBefore(checklistRow, custConcernRow.nextSibling);
-            }
-        }
-
         function createFieldRow(field) {
             const row = document.createElement("tr");
             const td = document.createElement("td");
@@ -6007,9 +6133,6 @@ function createForm2() {
                 input = document.createElement("select");
                 input.name = field.name;
                 input.className = "form2-input";
-                if (field.name === "custConcern") {
-                    input.id = field.name;
-                }
 
                 field.options.forEach((optionText, index) => {
                     const option = document.createElement("option");
@@ -6047,9 +6170,6 @@ function createForm2() {
         fields.forEach(field => {
             const row = createFieldRow(field);
             table.appendChild(row);
-            if (field.name === "custConcern") {
-            custConcernRow = row;
-            }
         });
 
         form2Container.appendChild(table);
@@ -6059,33 +6179,28 @@ function createForm2() {
         const buttonTable = createButtons(buttonLabels, buttonHandlers);
         form2Container.appendChild(buttonTable);
     
-    //******************** INQUIRY: Contract / Lock In **************************************************************
-    } else if (selectedValue === "formInqLockIn") { 
+    //******************** INQUIRY: Products and Promos ***************************************
+    } else if (selectedValue === "formInqRefund") {
         const table = document.createElement("table");
 
         const fields = [
             { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
+            { label: "Refund Inquiry Type", type: "select", name: "subType", options: [
+                "", 
+                "Proactive AMSF (New Connect)", 
+                "Reactive Final Account",
+                "Reactive Overpayment",
+                "Reactive Wrong Biller"
+            ]},
             { label: "Customer Authentication", type: "select", name: "custAuth", options: [
                 "", 
                 "Failed", 
                 "Passed",
                 "NA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
+            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: ["", "Yes", "No - Customer is Unresponsive", "No - Customer Declined Further Assistance", "No - System Ended Chat"] },
+            { label: "Upsell", type: "select", name: "upsell", options: ["", "Yes - Accepted", "No - Declined", "No - Ignored", "NA - Not Eligible"] }
         ];
 
         function createInstructionsRow() {
@@ -6122,46 +6237,14 @@ function createForm2() {
             return row;
         }
 
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer asked when their 36-month lock-in contract began and when it will end.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
         function createFieldRow(field) {
             const row = document.createElement("tr");
-            const primaryFields = ["custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
             const td = document.createElement("td");
             const divInput = document.createElement("div");
             divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
 
             const label = document.createElement("label");
-            label.textContent = `${field.label}`;
+            label.textContent = field.label;
             label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
             label.setAttribute("for", field.name);
 
@@ -6170,33 +6253,27 @@ function createForm2() {
                 input = document.createElement("select");
                 input.name = field.name;
                 input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
+
+                field.options.forEach((optionText, index) => {
                     const option = document.createElement("option");
                     option.value = optionText;
                     option.textContent = optionText;
-
                     if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
+                    option.disabled = true;
+                    option.selected = true;
+                    option.style.fontStyle = "italic";
                     }
-
                     input.appendChild(option);
                 });
+
+                if (field.name === "custConcern") {
+                    input.addEventListener("change", updateChecklist);
+                }
             } else if (field.type === "textarea") {
                 input = document.createElement("textarea");
                 input.name = field.name;
                 input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
+                input.rows = field.name === "remarks" ? 6 : 2;
                 if (field.placeholder) input.placeholder = field.placeholder;
             }
 
@@ -6207,885 +6284,22 @@ function createForm2() {
 
             return row;
         }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
+
+        table.appendChild(createInstructionsRow());
+
+        fields.forEach(field => {
             const row = createFieldRow(field);
             table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
         });
 
         form2Container.appendChild(table);
 
         const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
+        const buttonHandlers = [fuseButtonHandler, sfTaggingButtonHandler, saveFormData, resetButtonHandler];
         const buttonTable = createButtons(buttonLabels, buttonHandlers);
         form2Container.appendChild(buttonTable);
-
-    //******************** INQUIRY: Copy of Bill ****************************************************
-    } else if (selectedValue === "formInqCopyOfBill") { 
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput"; 
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "Please fill out all required fields.";
-            ul.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
-            ul.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Ensure that the information is accurate.";
-            ul.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "Please review your inputs before generating the notes.";
-            ul.appendChild(li4);
-
-            instructionsDiv.appendChild(ul);
-
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired about where or how they can get a copy of their monthly bill.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const primaryFields = ["custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = `${field.label}`;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-
-                    input.appendChild(option);
-                });
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** INQUIRY: My Home Account *****************************************************************
-    } else if (selectedValue === "formInqMyHomeAcc") { 
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput"; 
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "Please fill out all required fields.";
-            ul.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
-            ul.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Ensure that the information is accurate.";
-            ul.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "Please review your inputs before generating the notes.";
-            ul.appendChild(li4);
-
-            instructionsDiv.appendChild(ul);
-
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired about how to log in through MyHome Account.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const primaryFields = ["custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = `${field.label}`;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-
-                    input.appendChild(option);
-                });
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** INQUIRY: Plan Details ********************************************************************
-    } else if (selectedValue === "formInqPlanDetails") { 
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput"; 
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "Please fill out all required fields.";
-            ul.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
-            ul.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Ensure that the information is accurate.";
-            ul.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "Please review your inputs before generating the notes.";
-            ul.appendChild(li4);
-
-            instructionsDiv.appendChild(ul);
-
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired about the various plans offered.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const primaryFields = ["planDetails", "custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = `${field.label}`;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-
-                    input.appendChild(option);
-                });
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** INQUIRY: Auto Debit Arrangement (ADA) ****************************************************
-    } else if (selectedValue === "formInqAda") { 
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput"; 
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "Please fill out all required fields.";
-            ul.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
-            ul.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Ensure that the information is accurate.";
-            ul.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "Please review your inputs before generating the notes.";
-            ul.appendChild(li4);
-
-            instructionsDiv.appendChild(ul);
-
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer is inquiring about Auto Debit Arrangement.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const primaryFields = ["custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = `${field.label}`;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-
-                    input.appendChild(option);
-                });
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** INQUIRY: Balance transfer ***************************************************************
-    } else if (selectedValue === "formInqBalTransfer") { 
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput"; 
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "Please fill out all required fields.";
-            ul.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.";
-            ul.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Ensure that the information is accurate.";
-            ul.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "Please review your inputs before generating the notes.";
-            ul.appendChild(li4);
-
-            instructionsDiv.appendChild(ul);
-
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createPromptRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist"; 
-
-            const header = document.createElement("p");
-            header.textContent = "Definition";
-            header.className = "requirements-header";
-            checklistDiv.appendChild(header);
-
-            const ul = document.createElement("ul");
-            ul.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The customer inquired about how to transfer their balance to another account.";
-            ul.appendChild(li1);
-
-            checklistDiv.appendChild(header);
-            checklistDiv.appendChild(ul);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const primaryFields = ["custAuth", "remarks", "issueResolved", "upsell"];
-            row.style.display = primaryFields.includes(field.name) ? "table-row" : "none";
-
-
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = `${field.label}`;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                field.options.forEach((optionText, index)=> {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-
-                    input.appendChild(option);
-                });
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = (field.name === "remarks") 
-                        ? 6 
-                        : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-        
-        table.appendChild(createInstructionsRow()); 
-        fields.forEach((field, index) => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-
-            if (field.name === "custAuth") {
-                table.appendChild(createPromptRow());
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** FOLLOW-UP: Change Ownership ****************************************************
+    
+    //******************** INQUIRY: Special Features ***************************************
     } else if (selectedValue === "formFfupChangeOwnership") { 
         const table = document.createElement("table");
 
@@ -7096,7 +6310,7 @@ function createForm2() {
                 "Beyond SLA", 
                 "Within SLA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "SO/SR #", type: "text", name: "srNum"},
             { label: "Type of Request", type: "select", name: "requestType", options: [
                 "", 
@@ -7339,7 +6553,7 @@ function createForm2() {
                 "No SO Generated",
                 "System Task / Stuck SO"
             ] },
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "SO/SR #", type: "text", name: "srNum"},
             { label: "Type of Request", type: "select", name: "requestType", options: [
                 "", 
@@ -7609,7 +6823,7 @@ function createForm2() {
                 "Beyond SLA", 
                 "Within SLA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "SO/SR #", type: "text", name: "srNum"},
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
@@ -7863,7 +7077,7 @@ function createForm2() {
         form2Container.appendChild(buttonTable);
 
     //******************** FOLLOW-UP: Disconnection (VAS) ****************************************************
-    }  else if (selectedValue === "formFfupDiscoVas") { 
+    } else if (selectedValue === "formFfupDiscoVas") { 
         const table = document.createElement("table");
 
         const fields = [
@@ -7885,7 +7099,7 @@ function createForm2() {
                 "No SO Generated",
                 "System Task / Stuck SO"
             ] },
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "SO/SR #", type: "text", name: "srNum"},
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
@@ -8060,7 +7274,7 @@ function createForm2() {
         form2Container.appendChild(buttonTable);
 
     //******************** FOLLOW-UP: Dispute ****************************************************
-    }  else if (selectedValue === "formFfupDispute") { 
+    } else if (selectedValue === "formFfupDispute") { 
         const table = document.createElement("table");
 
         const fields = [
@@ -8080,7 +7294,7 @@ function createForm2() {
                 "Beyond SLA", 
                 "Within SLA"
             ]},
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
+            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer. Avoid using generic notations such as “ACK CX”,“PROVIDE EMPATHY”, “CONDUCT VA”, or “CONDUCT BTS”. You may also include any SNOW or E-Solve tickets raised for tool-related issues or latency." },
             { label: "SO/SR #", type: "text", name: "srNum"},
             { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
                 "", 
@@ -8243,287 +7457,7 @@ function createForm2() {
             updateApproverOptions(disputeTypeSelect.value);
         });
 
-    //******************** FOLLOW-UP:  ****************************************************
-    } else if (selectedValue === "formFfupDowngrade") {
-        const table = document.createElement("table");
-
-        const fields = [
-            { label: "Concern", type: "textarea", name: "custConcern", placeholder: "Please input short description of the concern." },
-            { label: "Customer Authentication", type: "select", name: "custAuth", options: [
-                "", 
-                "Failed", 
-                "Passed",
-                "NA"
-            ]},
-            { label: "Status", type: "select", name: "ffupStatus", options: [
-                "", 
-                "Beyond SLA", 
-                "Within SLA"
-            ]},
-            { label: "Findings", type: "select", name: "findings", options: [
-                "", 
-                "Activation Task",
-                "No SO Generated",
-                "Opsim",
-                "RSO Customer",
-                "RSO PLDT",
-                "System Task / Stuck SO"
-            ] },
-            { label: "Actions Taken/ Remarks", type: "textarea", name: "remarks", placeholder: "Please input all actions taken, details/information shared, or any additional remarks to assist the customer." },
-            { label: "SO/SR #", type: "text", name: "srNum"},
-            { label: "Issue Resolved? (Y/N)", type: "select", name: "issueResolved", options: [
-                "", 
-                "Yes",
-                "No - Customer is Unresponsive",
-                "No - Customer Declined Further Assistance",
-                "No - System Ended Chat"
-            ] },
-            { label: "Upsell", type: "select", name: "upsell", options: [
-                "", 
-                "Yes - Accepted", 
-                "No - Declined",
-                "No - Ignored",
-                "NA - Not Eligible"
-            ]}
-        ];
-
-        function createInstructionsRow() {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-            const instructionsDiv = document.createElement("div");
-            instructionsDiv.className = "form2DivInput";
-
-            const ul = document.createElement("ul");
-            ul.className = "instructions-list";
-
-            ["Please fill out all required fields.",
-            "If a field is not required, please leave it blank. Avoid entering 'NA' or any unnecessary details.",
-            "Ensure that the information is accurate.",
-            "Please review your inputs before generating the notes."].forEach(text => {
-                const li = document.createElement("li");
-                li.textContent = text;
-                ul.appendChild(li);
-            });
-
-            instructionsDiv.appendChild(ul);
-            td.appendChild(instructionsDiv);
-            row.appendChild(td);
-            return row;
-        }
-
-        function createPromptRow() {
-            // const ownershipEl = document.querySelector('[name="ownership"]');
-            const findingsEl = document.querySelector('[name="findings"]');
-
-            // const ownership = ownershipEl ? ownershipEl.value : "";
-            const findings = findingsEl ? findingsEl.value : "";
-
-            if (findings !== "No SO Generated") {
-                return null;
-            }
-
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-
-            const checklistDiv = document.createElement("div");
-            checklistDiv.className = "form2DivChecklist";
-
-            const mInfo = document.createElement("p");
-            mInfo.textContent = "Mandatory Information:";
-            mInfo.className = "requirements-header";
-            checklistDiv.appendChild(mInfo);
-
-            const ulMandaInfo = document.createElement("ul");
-            ulMandaInfo.className = "checklist";
-
-            const li1 = document.createElement("li");
-            li1.textContent = "The Account is Active";
-            ulMandaInfo.appendChild(li1);
-
-            const li2 = document.createElement("li");
-            li2.textContent = "No pending bill-related issues";
-            ulMandaInfo.appendChild(li2);
-
-            const li3 = document.createElement("li");
-            li3.textContent = "Zero balance MSF";
-            ulMandaInfo.appendChild(li3);
-
-            const li4 = document.createElement("li");
-            li4.textContent = "No open dispute";
-            ulMandaInfo.appendChild(li4);
-
-            const li5 = document.createElement("li");
-            li5.textContent = "Paid unbilled toll charges";
-            ulMandaInfo.appendChild(li5);
-
-            const li6 = document.createElement("li");
-            li6.textContent = "Paid Pre-Termination Fee if within lock-in (Supersedure with creation of New Account number) for the following:";
-            const nestedUl = document.createElement("ul");
-            [
-                "Remaining months of gadget amortization",
-                "Remaining months of installation fee",
-                "Remaining months of activation fee"
-            ].forEach(text => {
-                const li = document.createElement("li");
-                li.textContent = text;
-                nestedUl.appendChild(li);
-            });
-            li6.appendChild(nestedUl);
-            ulMandaInfo.appendChild(li6);
-
-            const li7 = document.createElement("li");
-            li7.textContent = "Supersedure with retention of account number and all account-related details shall only be allowed for the following incoming customer:";
-            const nestedOl = document.createElement("ol");
-            nestedOl.type = "a";
-            [
-                "Spouse of the outgoing customer must submit (PSA) Copy of Marriage Certificate",
-                "Child of the outgoing customer must submit (PSA) Copy of Birth Certificate",
-                "Sibling of the outgoing customer must submit (PSA) copies of Birth Certificate of both incoming and outgoing customers"
-            ].forEach(text => {
-                const li = document.createElement("li");
-                li.textContent = text;
-                nestedOl.appendChild(li);
-            });
-            li7.appendChild(nestedOl);
-            ulMandaInfo.appendChild(li7);
-
-            checklistDiv.appendChild(ulMandaInfo);
-
-            const req = document.createElement("p");
-            req.textContent = "Requirements:";
-            req.className = "customer-talking-points-header";
-            checklistDiv.appendChild(req);
-
-            const ulreq = document.createElement("ul");
-            ulreq.className = "checklist";
-
-            const talkingPoints = [
-                "Service Request Form (if required for the feature being requested)", // index 0
-                "Subscription Certificate (if required for the feature being requested)", // index 1
-                "Refer to PLDT Guidelines in Handling Non-SOR Aftersales Request for the guidelines", // index 2
-                "Signed document should be sent back to proceed with the SO creation", // index 3
-                "Authorization letter signed by the customer on record", // index 4
-                "Valid ID of the customer on record", // index 5
-                "Valid ID of the authorized requestor" // index 6
-            ];
-
-            const liElements = talkingPoints.map(text => {
-                const li = document.createElement("li");
-                li.textContent = text;
-                return li;
-            });
-
-            if (ownership === "SOR") {
-                ulreq.appendChild(liElements[0]);
-                ulreq.appendChild(liElements[1]);
-            } else {
-                ulreq.appendChild(liElements[2]);
-                ulreq.appendChild(liElements[3]);
-                ulreq.appendChild(liElements[4]);
-                ulreq.appendChild(liElements[5]);
-            }
-
-            checklistDiv.appendChild(ulreq);
-
-            td.appendChild(checklistDiv);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        let findingsRow = null;
-
-        function updateChecklist() {
-            const existingChecklist = document.querySelector(".form2DivChecklist")?.closest("tr");
-            if (existingChecklist) {
-                existingChecklist.remove();
-            }
-
-            const checklistRow = createPromptRow();
-            if (checklistRow && findingsRow && findingsRow.parentNode) {
-                findingsRow.parentNode.insertBefore(checklistRow, findingsRow.nextSibling);
-            }
-        }
-
-        function createFieldRow(field) {
-            const row = document.createElement("tr");
-            const td = document.createElement("td");
-            const divInput = document.createElement("div");
-            divInput.className = field.type === "textarea" ? "form2DivTextarea" : "form2DivInput";
-
-            const label = document.createElement("label");
-            label.textContent = field.label;
-            label.className = field.type === "textarea" ? "form2-label-textarea" : "form2-label";
-            label.setAttribute("for", field.name);
-
-            let input;
-            if (field.type === "select") {
-                input = document.createElement("select");
-                input.name = field.name;
-                input.className = "form2-input";
-                if (field.name === "findings") {
-                    input.id = field.name;
-                }
-
-                field.options.forEach((optionText, index) => {
-                    const option = document.createElement("option");
-                    option.value = optionText;
-                    option.textContent = optionText;
-                    if (index === 0) {
-                        option.disabled = true;
-                        option.selected = true;
-                        option.style.fontStyle = "italic";
-                    }
-                    input.appendChild(option);
-                });
-
-                if (field.name === "findings") {
-                    input.addEventListener("change", updateChecklist);
-                }
-            } else if (field.type === "textarea") {
-                input = document.createElement("textarea");
-                input.name = field.name;
-                input.className = "form2-textarea";
-                input.rows = field.name === "remarks" ? 6 : 2;
-                if (field.placeholder) input.placeholder = field.placeholder;
-            } else {
-                input = document.createElement("input");
-                input.type = field.type;
-                input.name = field.name;
-                input.className = "form2-input";
-            }
-
-            divInput.appendChild(label);
-            divInput.appendChild(input);
-            td.appendChild(divInput);
-            row.appendChild(td);
-
-            return row;
-        }
-
-        table.appendChild(createInstructionsRow());
-
-        fields.forEach(field => {
-            const row = createFieldRow(field);
-            table.appendChild(row);
-            if (field.name === "findings") {
-                findingsRow = row;
-            }
-        });
-
-        form2Container.appendChild(table);
-
-        const buttonLabels = ["Generate", "SF Tagging", "💾 Save", "🔄 Reset"];
-        const buttonHandlers = [
-            fuseButtonHandler,
-            sfTaggingButtonHandler,
-            saveFormData,
-            resetButtonHandler,
-        ];
-        const buttonTable = createButtons(buttonLabels, buttonHandlers);
-        form2Container.appendChild(buttonTable);
-
-    //******************** FOLLOW-UP:  ****************************************************
+    //******************** INQUIRY:  ****************************************************
     }
 }
 
@@ -8546,12 +7480,12 @@ function createButtons(buttonLabels, buttonHandlers) {
             while (buttonIndex < buttonLabels.length) {
                 let label = buttonLabels[buttonIndex];
 
-                if (channelField === "CDT-HOTLINE" && (label === "SF Tagging" || label === "Endorse")) {
+                if (channelField === "CDT-HOTLINE" && (label === "SF Tagging" || label === "Endorse" || label === "Salesforce")) {
                     buttonIndex++;
                     continue;
                 }
 
-                if (channelField === "CDT-HOTLINE" && label === "Salesforce") {
+                if (channelField === "CDT-HOTLINE" && label === "FUSE") {
                     label = "FUSE/ESA";
                 }
 
@@ -8690,6 +7624,7 @@ function initializeVariables() {
         findings: q('[name="findings"]'),
         disputeType: q('[name="disputeType"]'),
         approver: q('[name="approver"]'),
+        subType: q('[name="subType"]'),
     };
 }
 
@@ -8812,7 +7747,7 @@ function cepCaseDescription() {
     return caseDescription;
 }
 
-function cepCaseNotes() {
+function cepCaseNotes(includeSpecialInst = true) {
     const vars = initializeVariables();
 
     const validIntents = [
@@ -8858,6 +7793,7 @@ function cepCaseNotes() {
             { name: "saaaBandwidthCode" },
             { name: "routingIndex", label: "ROUTING INDEX" },
             { name: "callSource", label: "CALL SOURCE" },
+            { name: "nmsSkinRemarks" },
 
             // Clearview
             { name: "cvReading", label: "CV" },
@@ -8870,6 +7806,7 @@ function cepCaseNotes() {
             { name: "dmsLanPortStatus", label: "DMS LAN PORT STATUS" },
             { name: "dmsWifiState", label: "DMS WIFI STATUS" },
             { name: "dmsLan4Status", label: "DMS LAN STATUS - LAN 4" },
+            { name: "dmsRemarks" },
 
             // Probing
             { name: "sfCaseNum", label: "SF" },
@@ -8962,12 +7899,17 @@ function cepCaseNotes() {
 
         const actionsTaken = actionsTakenParts.join(" | ");
 
-        return [output.trim(), retrackingOutput.trim(), actionsTaken.trim()]
+        const finalNotes = [output.trim(), retrackingOutput.trim(), actionsTaken.trim()]
             .filter(section => section)
             .join("\n\n");
+
+        return finalNotes;
     }
 
-    return constructCaseNotes();
+    const notes = constructCaseNotes();
+    const specialInst = includeSpecialInst ? (specialInstButtonHandler() || "").toUpperCase() : "";
+
+    return [notes, specialInst].filter(Boolean).join("\n\n");
 
 }
 
@@ -9090,7 +8032,7 @@ function validateRequiredFields(filter = []) {
     }
 
     let alertFields = [];
-  
+
     if (filter.length === 0 || filter.includes("Title")) {
         // Don't alert for anything
         alertFields = [];
@@ -9148,7 +8090,7 @@ function cepButtonHandler(showFloating = true, filter = []) {
     const dataMap = {
         Title: (cepCaseTitle() || "").toUpperCase(),
         Description: (cepCaseDescription() || "").toUpperCase(),
-        "Case Notes in Timeline": (cepCaseNotes() || "").toUpperCase(),
+        "Case Notes in Timeline": (cepCaseNotes(true) || "").toUpperCase(),
         "Special Instructions": (specialInstButtonHandler() || "").toUpperCase()
     };
 
@@ -9232,8 +8174,7 @@ function showCepFloatingDiv(labels, textToCopy) {
     };
 }
 
-
-function ffupButtonHandler(showFloating = true, enableValidation = true) {
+function ffupButtonHandler(showFloating = true, enableValidation = true, includeSpecialInst = true) {
     const vars = initializeVariables();
 
     function copyToClipboard(text) {
@@ -9324,6 +8265,8 @@ function ffupButtonHandler(showFloating = true, enableValidation = true) {
         { name: "offerALS" },
         { name: "ticketStatus", label: "Case Status" },
         { name: "ffupCount", label: "No. of Follow-Up(s)" },
+        { name: "statusReason", label: "STATUS REASON" },
+        { name: "subStatus", label: "SUB STATUS" },
         { name: "queue", label: "QUEUE" },
         { name: "ticketAge", label: "Ticket Age" },
         { name: "investigation1", label: "Investigation 1" },
@@ -9334,22 +8277,35 @@ function ffupButtonHandler(showFloating = true, enableValidation = true) {
         { name: "sla", label: "SLA" },
     ];
 
-    let ffupCopiedText = constructOutputFFUP(fields).toUpperCase();
-    let specialInstCopiedText = (specialInstButtonHandler() || "").toUpperCase();
+    const ffupCopiedText = constructOutputFFUP(fields).toUpperCase();
+    const specialInstCopiedText = (specialInstButtonHandler() || "").toUpperCase();
 
-    const combinedOutput = [
-        ffupCopiedText,
-        specialInstCopiedText
-    ].filter(Boolean).join("\n\n");
+let combinedFollowUpText = ffupCopiedText;
 
-    if (showFloating) {
-        showFfupFloatingDiv(combinedOutput);
-    }
-
-    return combinedOutput;
+if (includeSpecialInst && specialInstCopiedText.trim()) {
+    // Append Special Instructions to Follow-Up Case Notes
+    combinedFollowUpText += `\n\n${specialInstCopiedText}`;
 }
 
-function showFfupFloatingDiv(combinedOutput) {
+const sections = [combinedFollowUpText];
+const sectionLabels = ["Follow-Up Case Notes"];
+
+if (includeSpecialInst && specialInstCopiedText.trim()) {
+    // Also show Special Instructions separately
+    sections.push(specialInstCopiedText);
+    sectionLabels.push("Special Instructions");
+}
+
+
+    if (showFloating) {
+        showFfupFloatingDiv(sections, sectionLabels);
+    }
+
+    return sections.join("\n\n");
+
+}
+
+function showFfupFloatingDiv(sections, sectionLabels) {
     const floatingDiv = document.getElementById("floatingDiv");
     const overlay = document.getElementById("overlay");
     const copiedValues = document.getElementById("copiedValues");
@@ -9369,9 +8325,6 @@ function showFfupFloatingDiv(combinedOutput) {
     floatingDivHeader.textContent = "CASE DOCUMENTATION: Click the text to copy!";
 
     copiedValues.innerHTML = "";
-
-    const sections = combinedOutput.split(/\n\n+/).filter(Boolean);
-    const sectionLabels = ["Follow-Up Case Notes", "Special Instructions"];
 
     sections.forEach((sectionText, index) => {
         const label = document.createElement("div");
@@ -9458,7 +8411,7 @@ function salesforceButtonHandler(showFloating = true, suppressRestrictions = fal
         "form300_1", "form300_2", "form300_3", "form300_4", "form300_5", "form300_6", "form300_7"
     ];
 
-    // *****************************************FOLLOW UP CONCERN***************************************************
+    // *****************************************FOLLOW UP CONCERN**********************************************
     if (vars.selectedIntent === "formFFUP") {
         const missingFields = [];
         if (!vars.channel) missingFields.push("Channel");
@@ -9469,9 +8422,9 @@ function salesforceButtonHandler(showFloating = true, suppressRestrictions = fal
             return; 
         }
 
-        ffupCopiedText = ffupButtonHandler(false, true);
+        ffupCopiedText = ffupButtonHandler(false, true, false);
 
-    // *********************************VOICE AND DATA CONNECTION************************************************
+    // *********************************VOICE AND DATA CONNECTION**********************************************
     } else if (validIntents.includes(vars.selectedIntent)) {
         const fieldLabels = {
             "WOCAS": "WOCAS",
@@ -9499,10 +8452,14 @@ function salesforceButtonHandler(showFloating = true, suppressRestrictions = fal
             return;
         }
 
-        titleCopiedText = (cepCaseTitle() || "").toUpperCase();
-        descriptionCopiedText = (cepCaseDescription() || "").toUpperCase();
-        caseNotesCopiedText = (cepCaseNotes() || "").toUpperCase();
-        specialInstCopiedText = (specialInstButtonHandler() || "").toUpperCase();
+        if (vars.channel === "CDT-HOTLINE") {
+            caseNotesCopiedText = (cepCaseNotes(false) || "").toUpperCase();
+        } else if (vars.channel === "CDT-SOCMED") {
+            titleCopiedText = (cepCaseTitle() || "").toUpperCase();
+            descriptionCopiedText = (cepCaseDescription() || "").toUpperCase();
+            caseNotesCopiedText = (cepCaseNotes(false) || "").toUpperCase();
+            specialInstCopiedText = (specialInstButtonHandler() || "").toUpperCase();
+        }
     }
 
     const textToCopy = [
@@ -9747,13 +8704,17 @@ function fuseButtonHandler(showFloating = true) {
     ? `${vars.srNum}/ ` 
     : "";
 
+    const inquiryForms = [
+        "formInqAccSrvcStatus", "formInqLockIn", "formInqCopyOfBill", "formInqMyHomeAcc", "formInqPlanDetails", "formInqAda", "formInqRebCredAdj", "formInqBalTransfer", "formInqBrokenPromise", "formInqCreditAdj", "formInqCredLimit", "formInqNSR", "formInqDdate", "formInqBillDdateExt", "formInqEcaPip", "formInqNewBill", "formInqOneTimeCharges", "formInqOverpay", "formInqPayChannel", "formInqPayPosting", "formInqPayRefund", "formInqPayUnreflected", "formInqDdateMod", "formInqBillRefund", "formInqSmsEmailBill", "formInqTollUsage", "formInqCoRetain", "formInqCoChange", "formInqPermaDisc", "formInqTempDisc", "formInqD1299", "formInqD1399", "formInqD1799", "formInqDOthers", "formInqDdateExt", "formInqEntertainment", "formInqInmove", "formInqMigration", "formInqProdAndPromo", "formInqHomeRefNC", "formInqHomeDisCredit", "formInqReloc", "formInqRewards", "formInqDirectDial", "formInqBundle", "formInqSfOthers", "formInqSAO500", "formInqUfcEnroll", "formInqUfcPromoMech", "formInqUpg1399", "formInqUpg1599", "formInqUpg1799", "formInqUpg2099", "formInqUpg2499", "formInqUpg2699", "formInqUpgOthers", "formInqVasAO", "formInqVasIptv", "formInqVasMOW", "formInqVasSAO", "formInqVasWMesh", "formInqVasOthers", "formInqWireReRoute"
+    ]
+
     // ***************************************** FOLLOW UP CONCERN *************************************************
     if (vars.selectedIntent === "formFFUP") {
         if (
             vars.ticketStatus === "Within SLA" ||
             (vars.offerALS !== "Offered ALS/Accepted" && vars.offerALS !== "Offered ALS/Declined")
         ) {
-            ffupCopiedText = ffupButtonHandler(false, true);
+            ffupCopiedText = ffupButtonHandler(false, true, false);
         } else {
             concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}FOLLOW-UP ${vars.ticketStatus}`;
             actionsTakenCopiedText = constructFuseOutput();
@@ -9808,11 +8769,11 @@ function fuseButtonHandler(showFloating = true) {
         actionsTakenCopiedText = constructFuseOutput();
 
     // ***************************************** Inquiry: Account/Service Status **********************************
-    } else if (vars.selectedIntent === "formInqAccSrvcStatus") {
+    } else if (inquiryForms.includes(vars.selectedIntent)) {
         const emptyFields = validateRequiredFields();
         if (emptyFields.length > 0) return;
 
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}${vars.custConcern} INQUIRY`;
+        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}${vars.custConcern}`;
         actionsTakenCopiedText = constructFuseOutput();
 
     // ***************************************** Inquiry: Bill Interpretation (Prorate / Breakdown) *****************
@@ -9820,66 +8781,26 @@ function fuseButtonHandler(showFloating = true) {
         const emptyFields = validateRequiredFields();
         if (emptyFields.length > 0) return;
 
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}${vars.selectedIntentText} FOR ${vars.custConcern}`;
+        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}BILL INTERPRETATION - ${vars.subType}/ ${vars.custConcern}`;
         actionsTakenCopiedText = constructFuseOutput();
 
     // ***************************************** Inquiry: Approved rebate / Credit Adjustment ***********************
-    } else if (vars.selectedIntent === "formInqRebCredAdj") {
+    } else if (vars.selectedIntent === "formInqOutsBal") {
         const emptyFields = validateRequiredFields();
         if (emptyFields.length > 0) return;
 
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}${vars.custConcern} INQUIRY`;
+        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}OUTSTANDING BALANCE - ${vars.subType}/ ${vars.custConcern}`;
         actionsTakenCopiedText = constructFuseOutput();
 
-    // ***************************************** Inquiry: Contract / Lock In ****************************************
-    } else if (vars.selectedIntent === "formInqLockIn") {
+    // ***************************************** Inquiry: Approved rebate / Credit Adjustment ***********************
+    } else if (vars.selectedIntent === "formInqRefund") {
         const emptyFields = validateRequiredFields();
         if (emptyFields.length > 0) return;
 
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}CONTRACT OR LOCK IN PERIOD INQUIRY/ ${vars.custConcern}`;
+        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}REFUND - ${vars.subType}/ ${vars.custConcern}`;
         actionsTakenCopiedText = constructFuseOutput();
 
-    // ***************************************** Inquiry: Copy of Bill **********************************************
-    } else if (vars.selectedIntent === "formInqCopyOfBill") {
-        const emptyFields = validateRequiredFields();
-        if (emptyFields.length > 0) return;
-
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}COPY OF BILL INQUIRY/ ${vars.custConcern}`;
-        actionsTakenCopiedText = constructFuseOutput();
-
-    // ***************************************** Inquiry: My Home Account *******************************************
-    } else if (vars.selectedIntent === "formInqMyHomeAcc") {
-        const emptyFields = validateRequiredFields();
-        if (emptyFields.length > 0) return;
-
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}MYHOME ACCOUNT LOGIN INQUIRY/ ${vars.custConcern}`;
-        actionsTakenCopiedText = constructFuseOutput();
-
-    // ***************************************** Inquiry: Plan Details **********************************************
-    } else if (vars.selectedIntent === "formInqPlanDetails") {
-        const emptyFields = validateRequiredFields();
-        if (emptyFields.length > 0) return;
-
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}${vars.custConcern}`;
-        actionsTakenCopiedText = constructFuseOutput();
-
-    // ***************************************** Inquiry: Auto Debit Arrangement (ADA) *****************************
-    } else if (vars.selectedIntent === "formInqAda") {
-        const emptyFields = validateRequiredFields();
-        if (emptyFields.length > 0) return;
-
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}AUTO DEBIT ARRANGEMENT INQUIRY/ ${vars.custConcern}`;
-        actionsTakenCopiedText = constructFuseOutput();
-
-    // ***************************************** Inquiry: Balance Transfer *****************************************
-    } else if (vars.selectedIntent === "formInqBalTransfer") {
-        const emptyFields = validateRequiredFields();
-        if (emptyFields.length > 0) return;
-
-        concernCopiedText = `C: ${vars.channel}/ ${sfCaseNum}${accountNum}BALANCE TRANSFER INQUIRY/ ${vars.custConcern}`;
-        actionsTakenCopiedText = constructFuseOutput();
-
-    // ***************************************** Follow-Up: Change of Ownership ************************************
+    // ***************************************** Inquiry: Approved rebate / Credit Adjustment ***********************
     } else if (vars.selectedIntent === "formFfupChangeOwnership") {
         const emptyFields = validateRequiredFields();
         if (emptyFields.length > 0) return;
@@ -10079,6 +9000,34 @@ function sfTaggingButtonHandler() {
         "formStrmApps_1", "formStrmApps_2", "formStrmApps_3", "formStrmApps_4", "formStrmApps_5"
     ]
 
+    const inqAccounts = [
+        "formInqAccSrvcStatus", "formInqLockIn", "formInqCopyOfBill", "formInqMyHomeAcc", "formInqPlanDetails"
+    ]
+
+    const inqBilling = [
+        "formInqBalTransfer", "formInqBrokenPromise", "formInqCreditAdj", "formInqCredLimit", "formInqNSR", "formInqDdate", "formInqBillDdateExt", "formInqEcaPip", "formInqNewBill", "formInqOneTimeCharges", "formInqOverpay", "formInqPayChannel", "formInqPayPosting", "formInqPayRefund", "formInqPayUnreflected", "formInqDdateMod", "formInqBillRefund", "formInqSmsEmailBill", "formInqTollUsage"
+    ]
+
+    const inqChangeOwnership = ["formInqCoRetain", "formInqCoChange"]
+
+    const inqDisco = ["formInqPermaDisc", "formInqTempDisc"]
+
+    const inqDowngrade = ["formInqD1299", "formInqD1399", "formInqD1799", "formInqDOthers"]
+
+    const inqRefProgram = ["formInqHomeRefNC", "formInqHomeDisCredit"]
+
+    const inqSpecialFeat = ["formInqDirectDial", "formInqBundle", "formInqSfOthers"]
+
+    const inqUfc = ["formInqUfcEnroll", "formInqUfcPromoMech"]
+
+    const inqUpgrade = [
+        "formInqUpg1399", "formInqUpg1599", "formInqUpg1799", "formInqUpg2099", "formInqUpg2499", "formInqUpg2699", "formInqUpgOthers"
+    ]
+
+    const inqVAS = [
+        "formInqVasAO", "formInqVasIptv", "formInqVasMOW", "formInqVasSAO", "formInqVasWMesh", "formInqVasOthers"
+    ]
+
     let bauRows = [];
     let netOutageRows = [];
     let crisisRows = [];
@@ -10252,54 +9201,7 @@ function sfTaggingButtonHandler() {
             ['Case Type:', 'Personnel'],
             ['Case Sub-Type:', `${vars.personnelType}`]
         ];
-    } else if (vars.selectedIntent === 'formInqAccSrvcStatus') {
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Account'],
-            ['Case Sub-Type:', `${vars.selectedIntentText}`]
-        ];
-    } else if (vars.selectedIntent === 'formInqBillInterpret') {
-        let subType = '';
-
-        const custConcernSelect = document.querySelector('[name="custConcern"]');
-        const selectedIndex = custConcernSelect ? custConcernSelect.selectedIndex : -1;
-
-        if (selectedIndex >= 4 && selectedIndex <= 6) {
-            subType = `${vars.selectedIntentText} (Prorate / Breakdown) - Upgrade/Downgrade/Migration`;
-        } else {
-            subType = `${vars.selectedIntentText} (Prorate / Breakdown) - ${vars.custConcern}`;
-        }
-
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Billing'],
-            ['Case Sub-Type:', subType]
-        ];
-    } else if (vars.selectedIntent === 'formInqRebCredAdj') {
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Billing'],
-            ['Case Sub-Type:', `${vars.selectedIntentText}`]
-        ];
-    } else if (vars.selectedIntent === 'formInqLockIn') {
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Account'],
-            ['Case Sub-Type:', `${vars.selectedIntentText}`]
-        ];
-    } else if (vars.selectedIntent === 'formInqCopyOfBill') {
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Account'],
-            ['Case Sub-Type:', `${vars.selectedIntentText}`]
-        ];
-    } else if (vars.selectedIntent === 'formInqMyHomeAcc') {
-        bauRows = [
-            ['VOC:', 'Inquiry'],
-            ['Case Type:', 'Account'],
-            ['Case Sub-Type:', `${vars.selectedIntentText}`]
-        ];
-    } else if (vars.selectedIntent === 'formInqPlanDetails') {
+    } else if (inqAccounts.includes(vars.selectedIntent)) {
         bauRows = [
             ['VOC:', 'Inquiry'],
             ['Case Type:', 'Account'],
@@ -10311,11 +9213,146 @@ function sfTaggingButtonHandler() {
             ['Case Type:', 'Billing'],
             ['Case Sub-Type:', 'ADA']
         ];
-    } else if (vars.selectedIntent === 'formInqBalTransfer') {
+    } else if (vars.selectedIntent === 'formInqBillInterpret') {
+        let subType = '';
+
+        const subTypeSelect = document.querySelector('[name="subType"]');
+        const selectedIndex = subTypeSelect ? subTypeSelect.selectedIndex : -1;
+
+        if (selectedIndex >= 4 && selectedIndex <= 6) {
+            subType = `${vars.selectedIntentText} (Prorate / Breakdown) - Upgrade/Downgrade/Migration`;
+        } else {
+            subType = `${vars.selectedIntentText} (Prorate / Breakdown) - ${vars.subType}`;
+        }
+
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Billing'],
+            ['Case Sub-Type:', subType]
+        ];
+    } else if (inqBilling.includes(vars.selectedIntent)) {
         bauRows = [
             ['VOC:', 'Inquiry'],
             ['Case Type:', 'Billing'],
             ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqOutsBal') {
+        let subType = '';
+        
+        subType = `${vars.selectedIntentText} - ${vars.subType}`;
+
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Billing'],
+            ['Case Sub-Type:', subType]
+        ];
+    } else if (inqChangeOwnership.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Change Ownership'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (inqDisco.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Disconnection'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (inqDowngrade.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Downgrade'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqDdateExt') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Due Date Extension'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqEntertainment') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Entertainment'],
+            ['Case Sub-Type:', 'Lions Gate/HBO Go/Viu/Others']
+        ];
+    } else if (vars.selectedIntent === 'formInqInmove') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Inmove'],
+            ['Case Sub-Type:', 'Inmove (Same Address)']
+        ];
+    } else if (vars.selectedIntent === 'formInqMigration') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Migration'],
+            ['Case Sub-Type:', 'Migration - Customer Initiated / PLDT Initiated']
+        ];
+    } else if (vars.selectedIntent === 'formInqProdAndPromo') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Product & Promos'],
+            ['Case Sub-Type:', 'New Application / PLDT Plans']
+        ];
+    } else if (inqRefProgram.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Referral Program'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqRefund') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Refund'],
+            ['Case Sub-Type:', '`Refund - ${vars.subType}`']
+        ];
+    } else if (vars.selectedIntent === 'formInqReloc') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Relocation'],
+            ['Case Sub-Type:', 'Relocation - Facility Availability / Transfer Fees / SLA']
+        ];
+    } else if (vars.selectedIntent === 'formInqRewards') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Rewards Program'],
+            ['Case Sub-Type:', 'MVP/HOME Rewards']
+        ];
+    } else if (inqSpecialFeat.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Special Features'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqSAO500') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Speed Add On 500'],
+            ['Case Sub-Type:', 'Product Info']
+        ];
+    } else if (inqUfc.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'UNLI FAM CALL'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (inqUpgrade.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Upgrade'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (inqVAS.includes(vars.selectedIntent)) {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'VAS'],
+            ['Case Sub-Type:', `${vars.selectedIntentText}`]
+        ];
+    } else if (vars.selectedIntent === 'formInqWireReRoute') {
+        bauRows = [
+            ['VOC:', 'Inquiry'],
+            ['Case Type:', 'Wire Re-Route'],
+            ['Case Sub-Type:', 'Processing Fees / SLA']
         ];
     } else if (vars.selectedIntent === 'formFfupChangeOwnership') {
         bauRows = [
@@ -10914,34 +9951,37 @@ function saveFormData() {
         return;
     }
 
+    const inquiryForms = [
+        "formInqAccSrvcStatus", "formInqLockIn", "formInqCopyOfBill", "formInqMyHomeAcc", "formInqPlanDetails", "formInqAda", "formInqRebCredAdj", "formInqBalTransfer", "formInqBrokenPromise", "formInqCreditAdj", "formInqCredLimit", "formInqNSR", "formInqDdate", "formInqBillDdateExt", "formInqEcaPip", "formInqNewBill", "formInqOneTimeCharges", "formInqOverpay", "formInqPayChannel", "formInqPayPosting", "formInqPayRefund", "formInqPayUnreflected", "formInqDdateMod", "formInqBillRefund", "formInqSmsEmailBill", "formInqTollUsage", "formInqCoRetain", "formInqCoChange", "formInqPermaDisc", "formInqTempDisc", "formInqD1299", "formInqD1399", "formInqD1799", "formInqDOthers", "formInqDdateExt", "formInqEntertainment", "formInqInmove", "formInqMigration", "formInqProdAndPromo", "formInqHomeRefNC", "formInqHomeDisCredit", "formInqReloc", "formInqRewards", "formInqDirectDial", "formInqBundle", "formInqSfOthers", "formInqSAO500", "formInqUfcEnroll", "formInqUfcPromoMech", "formInqUpg1399", "formInqUpg1599", "formInqUpg1799", "formInqUpg2099", "formInqUpg2499", "formInqUpg2699", "formInqUpgOthers", "formInqVasAO", "formInqVasIptv", "formInqVasMOW", "formInqVasSAO", "formInqVasWMesh", "formInqVasOthers", "formInqWireReRoute"
+    ]
+
     const vars = initializeVariables();
-    const ffupNotes = ffupButtonHandler(false, false);
+    const ffupNotes = ffupButtonHandler(false, false, true);
     const rawFuseNotes = fuseButtonHandler(false);
     const fuseNotes = Array.isArray(rawFuseNotes) ? rawFuseNotes.join("\n") : (rawFuseNotes || "");
     const sfNotes = salesforceButtonHandler(false, true);
     const nonTechIntents = [
+        // Complaint
         "formReqNonServiceRebate",
         "formReqReconnection",
         "formMyHomeWeb",
         "formMisappliedPayment",
         "formUnreflectedPayment",
         "formPersonnelIssue",
-        "formInqAccSrvcStatus",
-        "formInqLockIn",
-        "formInqCopyOfBill",
-        "formInqMyHomeAcc",
-        "formInqPlanDetails",
-        "formInqAda",
-        "formInqRebCredAdj",
-        "formInqBalTransfer",
+
+        // Inquiry
+        ...inquiryForms,
         "formInqBillInterpret",
+        "formInqOutsBal",
+        "formInqRefund",
+
+        // Follow-up
         "formFfupChangeOwnership",
         "formFfupChangeTelNum",
         "formFfupChangeTelUnit",
         "formFfupDiscoVas",
         "formFfupDispute",
-        "",
-        "",
+        
         "",
         "",
         "",
@@ -11069,7 +10109,7 @@ function exportFormData() {
         }
 
         notepadContent += `\nCASE NOTES:\n${entry.combinedNotes}\n\n`;
-        notepadContent += "=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n";
+        notepadContent += "=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n";
     }
 
     const currentDate = new Date();

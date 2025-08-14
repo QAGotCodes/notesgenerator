@@ -1,6 +1,6 @@
 //script.js
 
-// Standard Notes Generator Version 5.2.060825
+// Standard Notes Generator Version 5.2.140825
 // Developed & Designed by: QA Ryan
 
 let lobSelect, vocSelect, intentSelect;
